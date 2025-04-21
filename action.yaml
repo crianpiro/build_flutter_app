@@ -32,7 +32,6 @@ inputs:
 
 runs:
   using: composite
-  runs-on: macos-latest
   steps:
 
     - name: Select latest xcode version
