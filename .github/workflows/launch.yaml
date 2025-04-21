@@ -1,6 +1,8 @@
 name: Launch Build Flutter App
 on:
-  push: main
+  push:
+     branches:
+      - main
 
 jobs:
   test_action:
