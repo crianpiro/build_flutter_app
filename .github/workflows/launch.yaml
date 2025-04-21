@@ -16,7 +16,6 @@ jobs:
 
       - name: Update version
         id: update_version
-        
         run: |
           ruby update_version.rb -t ${{ env.RELEASE_OPTIONS }}
 
