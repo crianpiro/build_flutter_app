@@ -21,6 +21,10 @@ jobs:
         run: |
           ruby update_version.rb -t ${{ env.RELEASE_OPTIONS }}
 
+      - name: Set ExportOptions.plist
+        run: |
+          echo '${{ secrets.EXPORT_OPTIONS }}' > ios/ExportOptions.plist
+
       - name: Run crianpiro/build_flutter_app@v1
         uses: ./
         with:
