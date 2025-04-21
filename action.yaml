@@ -32,8 +32,10 @@ inputs:
 
 runs:
   using: composite
+  defaults:
+    run:
+      working-directory: ${{ inputs.working-directory }}
   steps:
-
     - name: Select latest xcode version
       shell: bash
       run: |
@@ -107,10 +109,10 @@ runs:
       if: ${{ env.USE_FLAVOR == 'true' }}
       shell: bash
       run: |
-          flutter build ipa -v --flavor ${{ env.FLAVOR }} --target lib/flavors/main_${{ env.FLAVOR }}.dart --export-options-plist=ios/flavors/${{ env.FLAVOR }}/ExportOptions.plist
+        flutter build ipa -v --flavor ${{ env.FLAVOR }} --target lib/flavors/main_${{ env.FLAVOR }}.dart --export-options-plist=ios/flavors/${{ env.FLAVOR }}/ExportOptions.plist
 
     - name: Build iOS artifact without flavor
       if: ${{ env.USE_FLAVOR == 'false' }}
       shell: bash
       run: |
-          flutter build ipa -v --export-options-plist=ios/ExportOptions.plist
+        flutter build ipa -v --export-options-plist=ios/ExportOptions.plist
