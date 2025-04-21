@@ -1,0 +1,30 @@
+name: Launch Build Flutter App
+on:
+  push: main
+
+jobs:
+  test_action:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: example
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Update version
+        id: update_version
+        
+        run: |
+          ruby update_version.rb -t ${{ env.RELEASE_OPTIONS }}
+
+      - name: Run crianpiro/build_flutter_app@v1
+        uses: ./
+        with:
+            working-directory: example
+            certificate-base64: ${{ secrets.P12_BASE64 }}
+            certificate-password: ${{ secrets.P12_PASSWORD }}
+            provisioning-profile-base64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+            keychain-password: ${{ secrets.RUNNER_KEYCHAIN_PASSWORD }}

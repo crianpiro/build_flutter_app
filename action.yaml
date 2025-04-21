@@ -1,0 +1,116 @@
+name: Build Flutter App
+description: Build the Flutter artifact for distribution
+branding:
+  color: blue
+  icon: box
+inputs:
+  working-directory:
+    description: The root directory of the flutter app within this repository
+    default: ./
+  flavor:
+    description: The name of the flavor to build
+    required: false
+  bundle-id:
+    description: The bundle identifier of the flavor to bu
+    required: false
+  use-flutterfire:
+    description: Whether this project uses FlutterFire or not
+    required: false
+    default: "true"
+  certificate-base64:
+    description: "The Base64 representation of the .p12 certificate"
+    required: true
+  certificate-password:
+    description: "Password for the .p12 certificate."
+    required: true
+  provisioning-profile-base64:
+    description: "Base64 of the provisioning profile (.mobileprovision)"
+    required: true
+  keychain-password:
+    description: "Password of the runner keychain"
+    required: true
+
+runs:
+  using: composite
+  steps:
+
+    - name: Select latest xcode version
+      shell: bash
+      run: |
+        latest_xcode=$(ls /Applications | grep '^Xcode' | sort -V | tail -n 1)
+        sudo xcode-select -s /Applications/$latest_xcode
+        echo "[INFO] Xcode version selected: $latest_xcode"
+        
+    - name: Install and setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version-file: ${{ inputs.working-directory }}/pubspec.yaml
+        cache: true
+
+    - name: Install Dependencies
+      shell: bash
+      run: flutter pub get
+
+    - name: Activate FlutterFire
+      if: ${{ inputs.use-flutterfire }} == 'true'
+      shell: bash
+      run: dart pub global activate flutterfire_cli
+
+    - name: Set build environment
+      shell: bash
+      run: |
+        use-flavor=false
+        if [ -n "${{ inputs.my_input }}" ]; then
+          use-flavor=false
+        fi
+        echo "USE_FLAVOR=$use-flavor" >> $GITHUB_ENV
+    
+    - name: Install certificates and provisioning profiles
+      shell: bash
+      env:
+        IOS_BUILD_CERTIFICATE_BASE64: ${{ inputs.certificate-base64 }}
+        IOS_BUILD_CERTIFICATE_PASSWORD: ${{ inputs.certificate-password }}
+        IOS_MOBILE_PROVISIONING_PROFILE_BASE64: ${{ inputs.provisioning-profile-base64 }}
+        IOS_GITHUB_KEYCHAIN_PASSWORD: ${{ inputs.keychain-password }}
+      run: |
+        # Create variables
+        CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+        KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+        PP_PATH=$RUNNER_TEMP/temp.mobileprovision
+
+        # Import certificate and provisioning profile from secrets
+        echo -n "$IOS_BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+        echo -n "$IOS_MOBILE_PROVISIONING_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+
+        # Create temporary keychain
+        security create-keychain -p "$IOS_GITHUB_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+        security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+        security unlock-keychain -p "$IOS_GITHUB_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+        # Import certificate to keychain
+        security import $CERTIFICATE_PATH -P "$IOS_BUILD_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+        security list-keychain -d user -s $KEYCHAIN_PATH
+        security find-identity -v
+
+        # Use UUID for the name of provisioning profile
+        UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(/usr/bin/security cms -D -i $PP_PATH))
+
+        # Apply provisioning profile
+        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+        cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
+
+    - name: List profiles
+      shell: bash
+      run: cd ~/Library/MobileDevice/Provisioning\ Profiles && ls
+    
+    - name: Build iOS artifact using flavor
+      if: ${{ env.USE_FLAVOR == 'true' }}
+      shell: bash
+      run: |
+          flutter build ipa -v --flavor ${{ env.FLAVOR }} --target lib/flavors/main_${{ env.FLAVOR }}.dart --export-options-plist=ios/flavors/${{ env.FLAVOR }}/ExportOptions.plist
+
+    - name: Build iOS artifact without flavor
+      if: ${{ env.USE_FLAVOR == 'false' }}
+      shell: bash
+      run: |
+          flutter build ipa -v --export-options-plist=ios/ExportOptions.plist
