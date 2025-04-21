@@ -60,11 +60,11 @@ runs:
     - name: Set build environment
       shell: bash
       run: |
-        use-flavor=false
+        USE_FLAVOR=false
         if [ -n "${{ inputs.my_input }}" ]; then
-          use-flavor=false
+          USE_FLAVOR=true
         fi
-        echo "USE_FLAVOR=$use-flavor" >> $GITHUB_ENV
+        echo "USE_FLAVOR=$USE_FLAVOR" >> $GITHUB_ENV
     
     - name: Install certificates and provisioning profiles
       shell: bash
