@@ -32,9 +32,6 @@ inputs:
 
 runs:
   using: composite
-  defaults:
-    run:
-      working-directory: ${{ inputs.working-directory }}
   steps:
     - name: Select latest xcode version
       shell: bash
@@ -52,11 +49,13 @@ runs:
     - name: Install Dependencies
       shell: bash
       run: flutter pub get
+      working-directory: ${{ inputs.working-directory }}
 
     - name: Activate FlutterFire
       if: ${{ inputs.use-flutterfire }} == 'true'
       shell: bash
       run: dart pub global activate flutterfire_cli
+      working-directory: ${{ inputs.working-directory }}
 
     - name: Set build environment
       shell: bash
@@ -69,6 +68,7 @@ runs:
     
     - name: Install certificates and provisioning profiles
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       env:
         IOS_BUILD_CERTIFICATE_BASE64: ${{ inputs.certificate-base64 }}
         IOS_BUILD_CERTIFICATE_PASSWORD: ${{ inputs.certificate-password }}
@@ -107,6 +107,7 @@ runs:
     
     - name: Build iOS artifact using flavor
       if: ${{ env.USE_FLAVOR == 'true' }}
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: |
         flutter build ipa -v --flavor ${{ env.FLAVOR }} --target lib/flavors/main_${{ env.FLAVOR }}.dart --export-options-plist=ios/flavors/${{ env.FLAVOR }}/ExportOptions.plist
@@ -114,5 +115,6 @@ runs:
     - name: Build iOS artifact without flavor
       if: ${{ env.USE_FLAVOR == 'false' }}
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       run: |
         flutter build ipa -v --export-options-plist=ios/ExportOptions.plist
