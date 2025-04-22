@@ -26,6 +26,9 @@ inputs:
   provisioning-profile-base64:
     description: "Base64 of the provisioning profile (.mobileprovision)"
     required: true
+  export-options-plist: 
+    description: "The export options .plist with your provisioning profile mapped"
+    required: true
   keychain-password:
     description: "Password of the runner keychain"
     required: true
@@ -66,6 +69,12 @@ runs:
         fi
         echo "USE_FLAVOR=$USE_FLAVOR" >> $GITHUB_ENV
     
+    - name: Set ExportOptions.plist
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: |
+        echo '${{ inputs.export-options-plist }}' > ios/ExportOptions.plist
+    
     - name: Install certificates and provisioning profiles
       shell: bash
       working-directory: ${{ inputs.working-directory }}
@@ -101,7 +110,7 @@ runs:
         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
         cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
 
-    - name: List profiles
+    - name: List provisioning profiles
       shell: bash
       run: cd ~/Library/MobileDevice/Provisioning\ Profiles && ls
     

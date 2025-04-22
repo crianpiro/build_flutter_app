@@ -5,7 +5,7 @@ on:
       - main
 
 jobs:
-  test_action:
+  run_build_flutter_app_action:
     runs-on: macos-latest
     defaults:
       run:
@@ -21,15 +21,11 @@ jobs:
         run: |
           ruby update_version.rb -t ${{ env.RELEASE_OPTIONS }}
 
-      - name: Set ExportOptions.plist
-        run: |
-          echo '${{ secrets.EXPORT_OPTIONS }}' > ios/ExportOptions.plist
-
       - name: Run crianpiro/build_flutter_app@v1
         uses: ./
         with:
-            working-directory: example
-            certificate-base64: ${{ secrets.P12_BASE64 }}
-            certificate-password: ${{ secrets.P12_PASSWORD }}
-            provisioning-profile-base64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
-            keychain-password: ${{ secrets.RUNNER_KEYCHAIN_PASSWORD }}
+          working-directory: example
+          certificate-base64: ${{ secrets.P12_BASE64 }}
+          certificate-password: ${{ secrets.P12_PASSWORD }}
+          provisioning-profile-base64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+          keychain-password: ${{ secrets.RUNNER_KEYCHAIN_PASSWORD }}
