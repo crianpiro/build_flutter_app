@@ -134,7 +134,7 @@ runs:
       run: |
         pwd
         ls build/ios/ipa
-        IPA_NAME=$(basename "$(find . -name "build/ios/ipa/*.ipa" | head -n 1)")
+        IPA_NAME=$(basename "$(find build/ios/ipa -name "*.ipa" | head -n 1)")
         IPA_PATH="build/ios/ipa/$IPA_NAME"
         
         if [ -z "$IPA_NAME" ]; then
