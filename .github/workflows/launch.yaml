@@ -29,3 +29,4 @@ jobs:
           certificate-password: ${{ secrets.P12_PASSWORD }}
           provisioning-profile-base64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
           keychain-password: ${{ secrets.RUNNER_KEYCHAIN_PASSWORD }}
+          export-options-plist: ${{ secrets.EXPORT_OPTIONS }}
