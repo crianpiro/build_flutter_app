@@ -132,10 +132,12 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
+        pwd
+        ls build/ios/ipa
         IPA_NAME=$(basename "$(find . -name "build/ios/ipa/*.ipa" | head -n 1)")
         IPA_PATH="build/ios/ipa/$IPA_NAME"
         
-        if [ -z "$IPA_PATH" ]; then
+        if [ -z "$IPA_NAME" ]; then
           echo "❌ IPA export failed: $IPA_PATH not found"
           exit 1
         else
