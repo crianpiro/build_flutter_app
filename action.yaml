@@ -132,10 +132,10 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
-        BUNDLE_NAME=$(/usr/libexec/PlistBuddy -c "Print CFBundleName" ios/Runner/Info.plist)
-        IPA_PATH="build/ios/ipa/$BUNDLE_NAME.ipa"
-        ls $IPA_PATH
-        if [ ! -f "$IPA_PATH" ]; then
+        IPA_NAME=$(basename "$(find . -name "build/ios/ipa/*.ipa" | head -n 1)")
+        IPA_PATH="build/ios/ipa/$IPA_NAME"
+        
+        if [ -z "$IPA_PATH" ]; then
           echo "❌ IPA export failed: $IPA_PATH not found"
           exit 1
         else
