@@ -132,7 +132,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
-        BUNDLE_NAME=$(/usr/libexec/PlistBuddy -c "Print CFBundleName" "$INFO_PLIST")
+        BUNDLE_NAME=$(/usr/libexec/PlistBuddy -c "Print CFBundleName" ios/Runner/Info.plist)
         IPA_PATH="build/ios/ipa/$BUNDLE_NAME.ipa"
         ls $IPA_PATH
         if [ ! -f "$IPA_PATH" ]; then
