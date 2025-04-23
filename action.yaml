@@ -132,20 +132,22 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
-        pwd
-        ls build/ios/ipa
-        IPA_NAME=$(basename "$(find build/ios/ipa -name "*.ipa" | head -n 1)")
-        IPA_PATH="build/ios/ipa/$IPA_NAME"
+        EXPORTED_IPA=$(basename "$(find build/ios/ipa -name "*.ipa" | head -n 1)")
+        IPA_PATH="build/ios/ipa/$EXPORTED_IPA"
         
-        if [ -z "$IPA_NAME" ]; then
-          echo "❌ IPA export failed: $IPA_PATH not found"
+        if [ -z "$EXPORTED_IPA" ]; then
+          echo "❌ IPA export failed: Please see logs above to identify the issue"
           exit 1
-        else
-          echo "✅ IPA export succeeded: $IPA_PATH found"
         fi
+
+        IPA_NAME=app-release.ipa
         
         if [ "${{ env.USE_FLAVOR }}" = "true" ]; then
-          mv "$IPA_PATH" build/ios/ipa/app-${{ env.FLAVOR }}.ipa
-        else
-          mv "$IPA_PATH" build/ios/ipa/app.ipa
+          IPA_NAME=app-${{ env.FLAVOR }}-release.ipa
         fi
+
+        mv "$IPA_PATH" build/ios/ipa/$IPA_NAME
+
+        IPA_PATH="build/ios/ipa/$IPA_NAME"
+        
+        echo "✅ IPA export succeeded: $IPA_PATH found"
