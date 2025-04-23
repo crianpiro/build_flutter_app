@@ -65,9 +65,7 @@ runs:
       run: |
         USE_FLAVOR=false
         if [ -n "${{ inputs.flavor }}" ]; then
-          if [ "${{ inputs.flavor }}" = "true" ]; then
-            USE_FLAVOR=true
-          fi
+          USE_FLAVOR=true
         fi
         echo "USE_FLAVOR=$USE_FLAVOR" >> $GITHUB_ENV
     
