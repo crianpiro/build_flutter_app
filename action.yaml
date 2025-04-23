@@ -64,8 +64,10 @@ runs:
       shell: bash
       run: |
         USE_FLAVOR=false
-        if [ -n "${{ inputs.my_input }}" ]; then
-          USE_FLAVOR=true
+        if [ -n "${{ inputs.flavor }}" ]; then
+          if [ "${{ inputs.flavor }}" = "true" ]; then
+            USE_FLAVOR=true
+          fi
         fi
         echo "USE_FLAVOR=$USE_FLAVOR" >> $GITHUB_ENV
     
@@ -119,7 +121,7 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: |
-        set -o pipefail && flutter build ipa -v --flavor ${{ env.FLAVOR }} --target lib/flavors/main_${{ env.FLAVOR }}.dart --export-options-plist=ios/flavors/${{ env.FLAVOR }}/ExportOptions.plist
+        set -o pipefail && flutter build ipa -v --flavor ${{ env.FLAVOR }} --target lib/flavors/main_${{ env.FLAVOR }}.dart --export-options-plist=ios/ExportOptions.plist
 
     - name: Build iOS artifact without flavor
       if: ${{ env.USE_FLAVOR == 'false' }}
