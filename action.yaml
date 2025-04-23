@@ -144,6 +144,6 @@ runs:
         
         if [ "${{ env.USE_FLAVOR }}" = "true" ]; then
           mv "$IPA_PATH" build/ios/ipa/app-${{ env.FLAVOR }}.ipa
-        elif
+        else
           mv "$IPA_PATH" build/ios/ipa/app.ipa
         fi
