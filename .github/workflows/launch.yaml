@@ -21,7 +21,7 @@ jobs:
         run: |
           ruby update_version.rb -t ${{ env.RELEASE_OPTIONS }}
 
-      - name: Run crianpiro/build_flutter_app@v1
+      - name: Run crianpiro/build_flutter_app@v2
         uses: ./
         with:
           working-directory: example
