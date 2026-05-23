@@ -41,7 +41,7 @@ inputs:
   android-output:
     description: "Android artifact to produce: 'apk', 'aab' or 'both'"
     required: false
-    default: aab
+    default: apk
   android-keystore-base64:
     description: "The Base64 representation of the release keystore (.jks/.keystore)"
     required: false
