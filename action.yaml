@@ -208,6 +208,33 @@ runs:
 
         # Import certificate to keychain
         security import $CERTIFICATE_PATH -P ${{ env.IOS_BUILD_CERTIFICATE_PASSWORD }} -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+
+        # Unlocking a keychain does not grant a tool permission to use a key
+        # inside it: every private key carries a partition list naming who may.
+        # A key macOS cannot match against that list triggers the "codesign
+        # wants to use your confidential information" dialog -- which on a
+        # runner has no screen to appear on and nobody to answer it, so the
+        # request simply fails, and codesign reports errSecInternalComponent.
+        # Authorizing codesign up front means the dialog is never needed.
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s \
+          -k "$IOS_GITHUB_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH >/dev/null
+
+        # -s *replaces* the search list, so from here macOS looks only in this
+        # keychain: the login and System keychains drop out, and Apple's
+        # intermediate certificate goes with them. A .p12 usually carries only
+        # the leaf certificate and key, because on a developer's own Mac the
+        # intermediate is already installed -- so without this the chain from
+        # the signing certificate up to the Apple root cannot be built, and
+        # codesign warns that it cannot build a chain to a self-signed root.
+        # Which generation issued a certificate depends on when it was issued,
+        # so import all of them; the extras are inert.
+        for generation in G2 G3 G4 G5 G6; do
+          curl -fsSL "https://www.apple.com/certificateauthority/AppleWWDRCA$generation.cer" \
+            -o "$RUNNER_TEMP/wwdr-$generation.cer" || continue
+          security import "$RUNNER_TEMP/wwdr-$generation.cer" -k $KEYCHAIN_PATH \
+            -T /usr/bin/codesign >/dev/null 2>&1 || true
+        done
+
         security list-keychain -d user -s $KEYCHAIN_PATH
         security find-identity -v
 
