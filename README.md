@@ -11,16 +11,36 @@ repository secrets, and runs the release build. Flavors are supported on both
 platforms.
 
 > The Flutter version is read from your `pubspec.yaml`
-> (`flutter-version-file`), so the action always matches your project.
+> (`flutter-version-file`), so the action always matches your project. Reading
+> it means parsing YAML, which needs [`yq`](https://github.com/mikefarah/yq) on
+> the runner — see [Requirements](#requirements).
 
 ---
 
 ## Requirements
 
-| Platform | Runner | Notes |
-| -------- | ------ | ----- |
-| `ios`     | `macos-latest` | Xcode is required; the action selects the latest installed Xcode. |
-| `android` | `ubuntu-latest` or `macos-latest` | The action installs Temurin JDK 17. |
+This action is composite, so it runs wherever the calling job runs — it has no
+`runs-on` of its own. Hosted and self-hosted runners are both fine; what differs
+is that a hosted image already carries the tools below, and a self-hosted machine
+generally does not.
+
+| Platform | Runner | The machine must provide |
+| -------- | ------ | ------------------------ |
+| `ios`     | any macOS runner — hosted (`macos-latest`) or self-hosted | **Xcode** and **`yq`**. The action selects the latest installed Xcode for the job by exporting `DEVELOPER_DIR`; the machine's own active Xcode is left unchanged, and no elevated privileges are needed. |
+| `android` | any Linux or macOS runner — hosted or self-hosted | **`yq`**. Temurin JDK 17 is installed by the action itself. |
+
+On a self-hosted runner, install `yq` once:
+
+```bash
+# Linux
+sudo curl -fsSL https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64 -o /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
+
+# macOS
+brew install yq
+```
+
+Without it, `subosito/flutter-action` fails with `yq not found` before anything
+is downloaded.
 
 Your Flutter project must declare its Flutter version in `pubspec.yaml`, e.g.:
 
@@ -256,7 +276,8 @@ Leave `flavor` unset for a single-flavor app.
 
 ## Building both platforms
 
-Use a matrix or two jobs (iOS must run on macOS):
+Use a matrix or two jobs (iOS must run on macOS). The runner labels below are
+the hosted ones; substitute your own for self-hosted runners.
 
 ```yaml
 jobs:
