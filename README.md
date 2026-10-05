@@ -104,7 +104,8 @@ jobs:
 | ---- | -------- | ------- | ----------- |
 | `platform` | no | `ios` | Which platform to build: `ios` or `android`. |
 | `working-directory` | no | `./` | Root of the Flutter app within the repository. |
-| `flavor` | no | – | Name of the flavor to build. When set, the build targets `lib/flavors/main_<flavor>.dart`. |
+| `flavor` | no | – | Name of the flavor to build. |
+| `target` | no | see description | Dart entry point, relative to `working-directory`. Defaults to `lib/flavors/main_<flavor>.dart` when `flavor` is set, and to `lib/main.dart` otherwise. |
 | `bundle-id` | no | – | Bundle identifier of the flavor to build. |
 | `use-flutterfire` | no | `"true"` | Whether to activate the FlutterFire CLI before building. |
 

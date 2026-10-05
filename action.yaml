@@ -14,6 +14,12 @@ inputs:
   flavor:
     description: The name of the flavor to build
     required: false
+  target:
+    description: >-
+      The Dart entry point to build, relative to working-directory. Defaults to
+      lib/flavors/main_<flavor>.dart when a flavor is set, and to Flutter's own
+      default (lib/main.dart) otherwise.
+    required: false
   bundle-id:
     description: The bundle identifier of the flavor to bu
     required: false
@@ -172,6 +178,17 @@ runs:
         echo "USE_FLAVOR=$USE_FLAVOR" >> $GITHUB_ENV
         echo "FLAVOR=${{ inputs.flavor }}" >> $GITHUB_ENV
 
+        # The entry point is an input because projects lay flavors out
+        # differently: lib/flavors/main_<flavor>.dart is only one convention,
+        # and lib/main_<flavor>.dart is at least as common. The flavored
+        # default stays the old hardcoded path so existing callers build what
+        # they built before. Empty means Flutter's own default, lib/main.dart.
+        TARGET="${{ inputs.target }}"
+        if [ -z "$TARGET" ] && [ "$USE_FLAVOR" = "true" ]; then
+          TARGET="lib/flavors/main_${{ inputs.flavor }}.dart"
+        fi
+        echo "TARGET=$TARGET" >> $GITHUB_ENV
+
     # =========================
     #  iOS build
     # =========================
@@ -255,14 +272,14 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: |
-        set -o pipefail && flutter build ipa -v --flavor ${{ env.FLAVOR }} --target lib/flavors/main_${{ env.FLAVOR }}.dart --export-options-plist=ios/ExportOptions.plist
+        set -o pipefail && flutter build ipa -v --flavor "$FLAVOR" ${TARGET:+--target "$TARGET"} --export-options-plist=ios/ExportOptions.plist
 
     - name: Build iOS artifact without flavor
       if: ${{ inputs.platform == 'ios' && env.USE_FLAVOR == 'false' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
-        set -o pipefail && flutter build ipa -v --export-options-plist=ios/ExportOptions.plist
+        set -o pipefail && flutter build ipa -v ${TARGET:+--target "$TARGET"} --export-options-plist=ios/ExportOptions.plist
 
     - name: Checking if IPA export succeeded and rename it
       if: ${{ inputs.platform == 'ios' }}
@@ -323,19 +340,22 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       run: |
         OUTPUT="${{ inputs.android-output }}"
-        FLAVOR_ARGS=""
+        FLAVOR_ARGS=()
         if [ "${{ env.USE_FLAVOR }}" = "true" ]; then
-          FLAVOR_ARGS="--flavor ${{ env.FLAVOR }} --target lib/flavors/main_${{ env.FLAVOR }}.dart"
+          FLAVOR_ARGS+=(--flavor "$FLAVOR")
+        fi
+        if [ -n "$TARGET" ]; then
+          FLAVOR_ARGS+=(--target "$TARGET")
         fi
 
         if [ "$OUTPUT" = "apk" ] || [ "$OUTPUT" = "both" ]; then
           echo "[INFO] Building APK..."
-          set -o pipefail && flutter build apk -v --release $FLAVOR_ARGS
+          set -o pipefail && flutter build apk -v --release "${FLAVOR_ARGS[@]}"
         fi
 
         if [ "$OUTPUT" = "aab" ] || [ "$OUTPUT" = "both" ]; then
           echo "[INFO] Building App Bundle (AAB)..."
-          set -o pipefail && flutter build appbundle -v --release $FLAVOR_ARGS
+          set -o pipefail && flutter build appbundle -v --release "${FLAVOR_ARGS[@]}"
         fi
 
     - name: Checking if Android build succeeded
