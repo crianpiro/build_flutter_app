@@ -108,6 +108,7 @@ jobs:
 | `target` | no | see description | Dart entry point, relative to `working-directory`. Defaults to `lib/flavors/main_<flavor>.dart` when `flavor` is set, and to `lib/main.dart` otherwise. |
 | `bundle-id` | no | – | Bundle identifier of the flavor to build. |
 | `use-flutterfire` | no | `"true"` | Whether to activate the FlutterFire CLI before building. |
+| `enforce-lockfile` | no | `"false"` | Install with `flutter pub get --enforce-lockfile`, so the build uses exactly the committed `pubspec.lock`. Set `"true"` when the project commits its lockfile. |
 
 ### iOS (required when `platform: ios`)
 
