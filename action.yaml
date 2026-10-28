@@ -27,6 +27,14 @@ inputs:
     description: Whether this project uses FlutterFire or not
     required: false
     default: "true"
+  enforce-lockfile:
+    description: >-
+      Install dependencies with `flutter pub get --enforce-lockfile`, so the
+      build uses exactly the versions in the committed pubspec.lock, and fails
+      instead of quietly resolving others when they disagree. Off by default,
+      for projects that do not commit pubspec.lock.
+    required: false
+    default: "false"
   # ---- iOS signing (required when platform == 'ios') ----
   certificate-base64:
     description: "The Base64 representation of the .p12 certificate"
@@ -159,7 +167,7 @@ runs:
 
     - name: Install Dependencies
       shell: bash
-      run: flutter pub get
+      run: flutter pub get ${{ inputs.enforce-lockfile == 'true' && '--enforce-lockfile' || '' }}
       working-directory: ${{ inputs.working-directory }}
 
     - name: Activate FlutterFire
